@@ -1,0 +1,17 @@
+{
+  "name": "node_server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "mime": "^4.0.3",
+    "websocket": "^1.0.34"
+  }
+}
