@@ -6,10 +6,6 @@ import mime from 'mime';
 
 const BASE_DIR = resolve(process.cwd(), 'root');
 
-function getMIMEType(filename) {
-  const mimeType = mime.getType(filename);
-}
-
 function getFilenameFromPath(filepath, callback) {
   // Sanitize filepath (if necessary)
   filepath = filepath.replace('/\+/g', '%20');
@@ -19,9 +15,7 @@ function getFilenameFromPath(filepath, callback) {
   
   function onStatComplete(err, stats) {
     if (err) {
-      // Write error
-      console.error('Error ' + err.message);
-      return;
+      return callback(err, filepath);
     }
     
     if (stats.isDirectory()) {
@@ -49,21 +43,29 @@ function getFilenameFromPath(filepath, callback) {
   stat(filename, onStatComplete);
 }
 
-function httpHandler(request, response) {
-  // Retrieve url, parse into path of requested resource
-  let path = parse(request.url).pathname;
-
+function httpHandler(request, response) { 
   
+  function writeError(err) { 
+    if(err.code == 'ENOENT') {
+      response.writeHead(404, { 'Content-Type': 'text/plain' });
+      response.write('Not Found');
+      response.end();
+    } else {
+      response.writeHead(500, { 'Content-Type': 'text/plain' });
+      response.write('Internal Server Error');
+      response.end()
+    }
+  }
+
   function onGotFilename(err, filename) {
     if(err) {
-      // Write Error
-      console.log('Error: ' + err.message);
+      writeError(err);
       return;
     } else {
       const mimeType = mime.getType(filename);
       readFile(filename, function (err, data) {
         if(err) {
-          // Write Error
+          writeError(err);
         } else {
           response.writeHead(200, { 'Content-Type': mimeType });
           response.write(data, 'binary');
@@ -73,22 +75,13 @@ function httpHandler(request, response) {
     }
   }
 
+  // Retrieve url, parse into path of requested resource
+  let path = parse(request.url).pathname;
+
   // After retrieving the path, attempt to retrieve resource
   getFilenameFromPath(path, onGotFilename);
 }
 
 export default function startHttpServer() {
-  /*
-  return http.createServer(function(request, response){
-    // response.setHeader('Content-Type', 'application/json');
-    console.log(BASE_DIR);
-    response.writeHead(200, {'Content-Type': 'application/json'});
-    response.end(JSON.stringify({
-      'message' : 'Hello, World!'
-    }));
-  })
-    .listen(3490);
-  */
-
   return http.createServer(httpHandler).listen(3490);
 }
