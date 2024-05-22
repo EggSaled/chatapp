@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import http from 'node:http';
 import { parse } from 'node:url';
 import { normalize, resolve, sep } from 'node:path';
@@ -83,5 +84,6 @@ function httpHandler(request, response) {
 }
 
 export default function startHttpServer() {
-  return http.createServer(httpHandler).listen(3490);
+  console.log('Server listening at port: ' + process.env.PORT + ' at hostname ' + process.env.HOSTNAME);
+  return http.createServer(httpHandler).listen(process.env.PORT, process.env.HOSTNAME);
 }
